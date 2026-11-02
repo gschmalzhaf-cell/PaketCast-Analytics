@@ -33,6 +33,24 @@ jobs:
       - uses: gradle/actions/setup-gradle@v4
       - name: Gradle-Wrapper erzeugen
         run: gradle wrapper --gradle-version 8.9
+      - name: Keystore aus Secret dekodieren
+        if: ${{ secrets.KEYSTORE_BASE64 != '' }}
+        env:
+          KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
+        run: |
+          printf '%s' "$KEYSTORE_BASE64" | base64 -d > app/release.keystore
+          echo "HAS_KEYSTORE=true" >> "$GITHUB_ENV"
       - name: Unit-Tests
         run: ./gradlew testDebugUnitTest
-      - run: echo "build steps ok"
+      - name: Signiertes Release bauen (APK + AAB)
+        if: ${{ env.HAS_KEYSTORE == 'true' }}
+        env:
+          KEYSTORE_PATH: app/release.keystore
+          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+        run: ./gradlew assembleRelease bundleRelease
+      - name: Test-Release bauen (Debug-APK, ohne Keystore)
+        if: ${{ env.HAS_KEYSTORE != 'true' }}
+        run: ./gradlew assembleDebug
+      - run: echo "signing steps ok"
