@@ -16,10 +16,11 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Keystore aus Secret dekodieren
-        if: ${{ secrets.KEYSTORE_BASE64 != '' }}
+        if: github.event_name == 'push'
         env:
           KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
         run: |
+          if [ -z "$KEYSTORE_BASE64" ]; then echo "kein Keystore konfiguriert"; exit 0; fi
           printf '%s' "$KEYSTORE_BASE64" | base64 -d > app/release.keystore
           echo "HAS_KEYSTORE=true" >> "$GITHUB_ENV"
       - run: echo ok
