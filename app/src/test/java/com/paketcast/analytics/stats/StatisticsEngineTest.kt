@@ -106,7 +106,10 @@ class StatisticsEngineTest {
 
         val snapshot = StatisticsEngine.buildSnapshot("test", listOf(withAuthor, withFeed, none), emptyList())
         assertEquals(3, snapshot.networks.size)
-        assertEquals("Externer Autor", snapshot.networks.first().network)
+        assertEquals(
+            setOf("Externer Autor", "example.com", "Unbekannt"),
+            snapshot.networks.map { it.network }.toSet(),
+        )
     }
 
     @Test
