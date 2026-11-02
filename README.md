@@ -80,6 +80,43 @@ gradle wrapper --gradle-version 8.9
 
 Oder das Projekt direkt in Android Studio öffnen.
 
+## Release (erste Version v1.0.0)
+
+Der Release läuft über GitHub Actions (`.github/workflows/release.yml`): Beim Push eines
+Tags `v*.*.*` wird die App gebaut, getestet und als **GitHub Release** veröffentlicht.
+
+### Einmalig: Release-Keystore anlegen und als GitHub-Secrets hinterlegen
+
+```bash
+keytool -genkey -v -keystore release.keystore -alias paketcast \
+  -keyalg RSA -keysize 2048 -validity 10000
+# Keystore als Base64 in ein Secret packen (Linux):
+base64 -w0 release.keystore
+# macOS:
+# base64 -i release.keystore
+```
+
+Im Repo unter **Settings → Secrets and variables → Actions** anlegen:
+
+- `KEYSTORE_BASE64` – Base64-Inhalt des Keystores
+- `KEYSTORE_PASSWORD` – Keystore-Passwort
+- `KEY_ALIAS` – z. B. `paketcast`
+- `KEY_PASSWORD` – Key-Passwort
+
+**Ohne** diese Secrets baut der Workflow stattdessen eine debug-signierte APK
+(nur zum Testen, nicht zur Verteilung geeignet).
+
+### Release auslösen
+
+```bash
+git tag v1.0.0
+git push origin v1.0.0
+```
+
+Der Workflow erstellt dann automatisch das GitHub Release mit APK (signiert) und AAB.
+Jeder Push auf `vibe/**` bzw. jeder PR wird außerdem von `.github/workflows/build.yml`
+gebaut und getestet (`assembleDebug testDebugUnitTest`).
+
 ## Datenschutz
 
 Die App benötigt keine Berechtigungen und keine Internetverbindung. Die
