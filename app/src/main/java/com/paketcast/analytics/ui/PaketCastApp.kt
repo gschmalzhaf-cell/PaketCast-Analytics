@@ -144,10 +144,11 @@ fun PaketCastApp(viewModel: AnalyticsViewModel = viewModel()) {
                     NavigationBarItem(
                         selected = currentRoute == screen.route,
                         onClick = {
-                            navController.navigate(screen.route) {
-                                popUpTo(navController.graph.startDestinationId) { saveState = true }
-                                launchSingleTop = true
-                                restoreState = true
+                            if (currentRoute != screen.route) {
+                                navController.navigate(screen.route) {
+                                    popUpTo(navController.graph.startDestinationId)
+                                    launchSingleTop = true
+                                }
                             }
                         },
                         icon = { Icon(screen.icon, contentDescription = screen.label) },
