@@ -8,8 +8,10 @@ automatisch als Beschreibung (Release Notes) im GitHub-Release des Tags.
 
 ## [Unreleased]
 
+### Hinzugefügt
+- Export der Statistiken: Menü oben rechts → „Podcasts als CSV teilen“ (Semikolon-CSV für Excel) oder „Alle Statistiken als JSON teilen“ (Übersicht, Podcasts, Top 10, Netzwerke, Extrema, Offen, Verlauf) – per Share-Sheet, lokal, ohne Datei-Provider
+
 ### Geplant
-- Export der Statistiken als CSV/JSON
 - Login über die inoffizielle Pocket-Casts-API (`api.pocketcasts.com/user/*`)
 - Filter nach Zeitraum, Vergleich mehrerer Importe
 

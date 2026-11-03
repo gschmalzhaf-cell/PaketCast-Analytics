@@ -1,5 +1,6 @@
 package com.paketcast.analytics.ui
 
+import android.content.Intent
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Column
@@ -13,11 +14,14 @@ import androidx.compose.material.icons.filled.BarChart
 import androidx.compose.material.icons.filled.Cloud
 import androidx.compose.material.icons.filled.Dashboard
 import androidx.compose.material.icons.filled.History
+import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.Schedule
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.filled.UploadFile
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.NavigationBar
@@ -33,6 +37,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -42,6 +47,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.paketcast.analytics.data.repository.AnalyticsState
+import com.paketcast.analytics.stats.StatsExport
 import com.paketcast.analytics.ui.screens.EpisodesScreen
 import com.paketcast.analytics.ui.screens.HistoryScreen
 import com.paketcast.analytics.ui.screens.NetworksScreen
@@ -81,6 +87,17 @@ fun PaketCastApp(viewModel: AnalyticsViewModel = viewModel()) {
         uri?.let { viewModel.importOpml(it) }
     }
     var showImportDialog by remember { mutableStateOf(false) }
+    var showExportMenu by remember { mutableStateOf(false) }
+    val context = LocalContext.current
+
+    fun shareText(subject: String, text: String) {
+        val intent = Intent(Intent.ACTION_SEND).apply {
+            type = "text/plain"
+            putExtra(Intent.EXTRA_SUBJECT, subject)
+            putExtra(Intent.EXTRA_TEXT, text)
+        }
+        context.startActivity(Intent.createChooser(intent, subject))
+    }
 
     Scaffold(
         topBar = {
@@ -89,6 +106,34 @@ fun PaketCastApp(viewModel: AnalyticsViewModel = viewModel()) {
                 actions = {
                     IconButton(onClick = { showImportDialog = true }) {
                         Icon(Icons.Default.UploadFile, contentDescription = "Daten importieren")
+                    }
+                    IconButton(onClick = { showExportMenu = true }) {
+                        Icon(Icons.Default.MoreVert, contentDescription = "Statistiken exportieren")
+                    }
+                    DropdownMenu(
+                        expanded = showExportMenu,
+                        onDismissRequest = { showExportMenu = false },
+                    ) {
+                        DropdownMenuItem(
+                            text = { Text("Podcasts als CSV teilen") },
+                            onClick = {
+                                showExportMenu = false
+                                val loaded = state as? AnalyticsState.Loaded
+                                if (loaded != null) {
+                                    shareText("PaketCast-Analytics-Podcasts.csv", StatsExport.snapshotToCsv(loaded.snapshot))
+                                }
+                            },
+                        )
+                        DropdownMenuItem(
+                            text = { Text("Alle Statistiken als JSON teilen") },
+                            onClick = {
+                                showExportMenu = false
+                                val loaded = state as? AnalyticsState.Loaded
+                                if (loaded != null) {
+                                    shareText("PaketCast-Analytics-v${loaded.snapshot.sourceName}.json", StatsExport.snapshotToJson(loaded.snapshot))
+                                }
+                            },
+                        )
                     }
                 },
             )
