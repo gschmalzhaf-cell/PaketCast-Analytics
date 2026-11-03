@@ -87,6 +87,17 @@ Tags `v*.*.*` wird die App gebaut, getestet und als **GitHub Release** veröffen
 
 ### Einmalig: Release-Keystore anlegen und als GitHub-Secrets hinterlegen
 
+Am einfachsten lokal auf dem eigenen Rechner (Key verlässt das Gerät nicht automatisch):
+
+```bash
+./tools/create-keystore.sh
+```
+
+Das Skript erzeugt `local-secrets/paketcast-release.keystore` plus `local-secrets/keystore.b64`
+(per `.gitignore` ausgeschlossen) und zeigt an, welche Werte wohin gehören.
+
+Manuell geht es so:
+
 ```bash
 keytool -genkey -v -keystore release.keystore -alias paketcast \
   -keyalg RSA -keysize 2048 -validity 10000
