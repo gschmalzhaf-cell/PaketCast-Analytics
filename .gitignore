@@ -9,3 +9,4 @@ app/build/
 *.keystore
 *.jks
 local-secrets/
+release.keystore
