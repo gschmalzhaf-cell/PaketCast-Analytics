@@ -1,12 +1,15 @@
 # Changelog
 
+## [Unreleased]
+
+
 Alle nennenswerten Änderungen an PaketCast Analytics. Format: [Keep a Changelog](https://keepachangelog.com/de/1.1.0/).
 
 **Regel:** Jeder PR pflegt den Abschnitt `[Unreleased]`. Beim Release wird dieser
 Abschnitt per `./tools/release.sh <version>` in `## [vX.Y.Z]` umbenannt und landet
 automatisch als Beschreibung (Release Notes) im GitHub-Release des Tags.
 
-## [Unreleased]
+## [v1.2.0]
 
 ### Hinzugefügt
 - Export der Statistiken: Menü oben rechts → „Podcasts als CSV teilen“ (Semikolon-CSV für Excel) oder „Alle Statistiken als JSON teilen“ (Übersicht, Podcasts, Top 10, Netzwerke, Extrema, Offen, Verlauf) – per Share-Sheet, lokal, ohne Datei-Provider
