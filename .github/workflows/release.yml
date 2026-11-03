@@ -76,10 +76,27 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: gh release delete "${GITHUB_REF_NAME}" --repo "$GITHUB_REPOSITORY" --yes || true
+      - name: Release-Notes aus CHANGELOG.md (Abschnitt des Tags)
+        id: notes
+        run: |
+          TAG="${GITHUB_REF_NAME}"
+          BODY=$(awk -v tag="## [$TAG]" '
+            $0 == tag { p = 1; next }
+            /^## \[/ { if (p) exit }
+            p { print }
+          ' CHANGELOG.md)
+          if [ -z "$BODY" ]; then
+            echo "::warning::Kein Changelog-Abschnitt für $TAG gefunden – Release-Notes leer. Bitte CHANGELOG.md pflegen (Abschnitt [Unreleased] via tools/release.sh)."
+          fi
+          {
+            echo "body<<CHANGELOG_EOF"
+            echo "$BODY"
+            echo "CHANGELOG_EOF"
+          } >> "$GITHUB_OUTPUT"
       - name: GitHub Release erstellen
         uses: softprops/action-gh-release@v2
         with:
           files: |
             dist/*.apk
             dist/*.aab
-          generate_release_notes: true
+          body: ${{ steps.notes.outputs.body }}

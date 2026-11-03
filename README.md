@@ -162,11 +162,25 @@ Im Repo unter **Settings → Secrets and variables → Actions** anlegen:
 **Ohne** diese Secrets baut der Workflow stattdessen eine debug-signierte APK
 (nur zum Testen, nicht zur Verteilung geeignet).
 
-### Release auslösen
+### Release auslösen (mit Changelog-Regel)
+
+**Regel: Der Changelog landet immer im aktuellen Release-Tag.** Jeder PR pflegt
+`CHANGELOG.md` im Abschnitt `[Unreleased]`. Beim Release wird dieser Abschnitt
+automatisch zum Tag-Abschnitt und als **Release Notes (Beschreibung)** des
+GitHub-Releases veröffentlicht – so sieht jeder Nutzer sofort, was neu ist.
 
 ```bash
-git tag v1.0.0
-git push origin v1.0.0
+# 1. CHANGELOG.md unter [Unreleased] gepflegt? Dann:
+./tools/release.sh 1.2.0
+# macht: [Unreleased] -> [v1.2.0] in CHANGELOG.md, versionName/versionCode in
+# app/build.gradle.kts erhöhen, Commit, annotierter Tag v1.2.0, Push von Branch + Tag.
+# CI liest den Changelog-Abschnitt [v1.2.0] und setzt ihn als Release-Beschreibung.
+```
+
+Manuell geht es auch, dann aber Changelog nicht vergessen:
+
+```bash
+git tag v1.2.0 && git push origin v1.2.0
 ```
 
 Der Workflow erstellt dann automatisch das GitHub Release. Die Assets heißen:
