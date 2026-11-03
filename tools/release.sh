@@ -36,10 +36,10 @@ lines = open(path).read().splitlines(keepends=True)
 out = []
 inserted = False
 for line in lines:
-    out.append(line)
-    if not inserted and line.startswith("# Changelog"):
-        out.append("\n## [Unreleased]\n\n")
+    if not inserted and line.startswith("## ["):
+        out.append("## [Unreleased]\n\n")
         inserted = True
+    out.append(line)
 open(path, "w").writelines(out)
 PY
 

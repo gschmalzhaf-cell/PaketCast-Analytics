@@ -1,13 +1,12 @@
 # Changelog
 
-## [Unreleased]
-
-
 Alle nennenswerten Änderungen an PaketCast Analytics. Format: [Keep a Changelog](https://keepachangelog.com/de/1.1.0/).
 
 **Regel:** Jeder PR pflegt den Abschnitt `[Unreleased]`. Beim Release wird dieser
 Abschnitt per `./tools/release.sh <version>` in `## [vX.Y.Z]` umbenannt und landet
 automatisch als Beschreibung (Release Notes) im GitHub-Release des Tags.
+
+## [Unreleased]
 
 ## [v1.2.0]
 
