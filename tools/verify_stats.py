@@ -22,13 +22,17 @@ PODCASTS_SQL = (
 EPISODES_SQL = (
     "SELECT uuid AS uuid, podcast_uuid AS podcastUuid, title AS title, "
     "duration AS duration, played_up_to AS playedUpTo, played_status AS playedStatus, "
-    "published_date AS published, added_date AS added, archived AS archived FROM episodes"
+    "published AS published, added AS added, archived AS archived FROM podcast_episodes"
 )
 EVENTS_SQL = (
     "SELECT episode_uuid AS episodeUuid, time AS time, duration AS seconds, action AS action "
     "FROM episode_interactions"
 )
 PLAY_ACTIONS = {"play", "played", "listen", "listened", "playback", "resume", "started"}
+
+
+def normalize_epoch(raw):
+    return raw // 1000 if raw > 10_000_000_000_000 else raw
 
 
 def listened_seconds(duration, played_up_to):
@@ -57,15 +61,15 @@ def build_db(path):
             podcastUrl TEXT,
             added_date INTEGER
         );
-        CREATE TABLE episodes (
+        CREATE TABLE podcast_episodes (
             uuid TEXT PRIMARY KEY,
             podcast_uuid TEXT,
             title TEXT,
             duration INTEGER,
             played_up_to INTEGER,
             played_status INTEGER,
-            published_date INTEGER,
-            added_date INTEGER,
+            published INTEGER,
+            added INTEGER,
             archived INTEGER,
             size INTEGER
         );
@@ -81,20 +85,20 @@ def build_db(path):
     db.executemany(
         "INSERT INTO podcasts VALUES (?,?,?,?,?)",
         [
-            ("p1", "Alpha", "Netz A", "https://feeds.alpha.de/rss", 1700000000),
-            ("p2", "Beta", None, "https://www.beta.fm/feed.xml", 1700000100),
-            ("p3", "Gamma", "", None, 1700000200),
+            ("p1", "Alpha", "Netz A", "https://feeds.alpha.de/rss", 1700000000000),
+            ("p2", "Beta", None, "https://www.beta.fm/feed.xml", 1700000100000),
+            ("p3", "Gamma", "", None, 1700000200000),
         ],
     )
     db.executemany(
-        "INSERT INTO episodes VALUES (?,?,?,?,?,?,?,?,?,?)",
+        "INSERT INTO podcast_episodes VALUES (?,?,?,?,?,?,?,?,?,?)",
         [
-            ("e1", "p1", "A1", 600, 600, 2, 1700001000, 1700001000, 0, 1000),
-            ("e2", "p1", "A2", 600, 300, 1, 1700002000, 1700002000, 0, 1000),
-            ("e3", "p2", "B1", 300, 0, 0, 1700003000, 1700003000, 0, 1000),
-            ("e4", "p2", "B2", 120, 120, 3, 1700004000, 1700004000, 1, 1000),
-            ("e5", "p3", "G1", 0, 45, 1, 1700005000, 1700005000, 0, 1000),
-            ("e6", "p1", "A3", 3600, 100, 1, 1700006000, 1700006000, 0, 1000),
+            ("e1", "p1", "A1", 600, 600, 2, 1700001000000, 1700001000000, 0, 1000),
+            ("e2", "p1", "A2", 600, 300, 1, 1700002000000, 1700002000000, 0, 1000),
+            ("e3", "p2", "B1", 300, 0, 0, 1700003000000, 1700003000000, 0, 1000),
+            ("e4", "p2", "B2", 120, 120, 3, 1700004000000, 1700004000000, 1, 1000),
+            ("e5", "p3", "G1", 0, 45, 1, 1700005000000, 1700005000000, 0, 1000),
+            ("e6", "p1", "A3", 3600, 100, 1, 1700006000000, 1700006000000, 0, 1000),
         ],
     )
     db.executemany(
@@ -118,7 +122,12 @@ def main():
         db.row_factory = sqlite3.Row
 
         podcasts = [dict(r) for r in db.execute(PODCASTS_SQL)]
+        for p in podcasts:
+            p["added"] = normalize_epoch(p["added"])
         episodes = [dict(r) for r in db.execute(EPISODES_SQL)]
+        for e in episodes:
+            e["published"] = normalize_epoch(e["published"])
+            e["added"] = normalize_epoch(e["added"])
         db.close()
 
         assert len(podcasts) == 3, podcasts

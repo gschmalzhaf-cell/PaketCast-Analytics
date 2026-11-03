@@ -19,16 +19,16 @@ object PocketCastsDbReader {
     fun read(dbPath: String): PocketCastsData {
         val db = SQLiteDatabase.openDatabase(dbPath, null, SQLiteDatabase.OPEN_READONLY)
         try {
-            val podcastColumns = columnsOf(db, "podcasts")
-            val episodeColumns = columnsOf(db, "episodes")
-            if (podcastColumns.isEmpty() || episodeColumns.isEmpty()) {
+            val podcastTable = listOf("podcasts").firstOrNull { columnsOf(db, it).isNotEmpty() }
+            val episodeTable = listOf("episodes", "podcast_episodes").firstOrNull { columnsOf(db, it).isNotEmpty() }
+            if (podcastTable == null || episodeTable == null) {
                 throw IOException(
-                    "Die Datei enthält nicht die erwarteten Tabellen 'podcasts' und 'episodes'. " +
+                    "Die Datei enthält nicht die erwarteten Tabellen ('podcasts' und 'episodes' bzw. 'podcast_episodes'). " +
                         "Ist es wirklich eine pocketcasts.db aus Pocket Casts?"
                 )
             }
-            val podcasts = readPodcasts(db, podcastColumns)
-            val episodes = readEpisodes(db, episodeColumns)
+            val podcasts = readPodcasts(db, podcastTable, columnsOf(db, podcastTable))
+            val episodes = readEpisodes(db, episodeTable, columnsOf(db, episodeTable))
             val playbackEvents = readPlaybackEvents(db)
             return PocketCastsData(podcasts, episodes, playbackEvents)
         } finally {
@@ -53,7 +53,7 @@ object PocketCastsDbReader {
     private fun selectExpr(actual: String?, alias: String): String =
         if (actual != null) "$actual AS $alias" else "NULL AS $alias"
 
-    private fun readPodcasts(db: SQLiteDatabase, columns: Set<String>): List<Podcast> {
+    private fun readPodcasts(db: SQLiteDatabase, table: String, columns: Set<String>): List<Podcast> {
         val uuid = pick(columns, "uuid")
             ?: throw IOException("Spalte 'uuid' fehlt in Tabelle 'podcasts'")
         val title = pick(columns, "title")
@@ -63,7 +63,7 @@ object PocketCastsDbReader {
         val added = pick(columns, "added_date", "addedDate", "added")
         val sql = "SELECT ${selectExpr(uuid, "uuid")}, ${selectExpr(title, "title")}, " +
             "${selectExpr(author, "author")}, ${selectExpr(feedUrl, "feedUrl")}, " +
-            "${selectExpr(added, "added")} FROM podcasts"
+            "${selectExpr(added, "added")} FROM $table"
         val result = mutableListOf<Podcast>()
         db.rawQuery(sql, null).use { c ->
             val iUuid = c.getColumnIndexOrThrow("uuid")
@@ -78,7 +78,7 @@ object PocketCastsDbReader {
                         title = c.getString(iTitle) ?: "",
                         author = c.getString(iAuthor),
                         feedUrl = c.getString(iFeed),
-                        addedEpochSec = c.getLongOrNull(iAdded),
+                        addedEpochSec = c.getLongOrNull(iAdded)?.let(::normalizeEpoch),
                     )
                 )
             }
@@ -86,7 +86,7 @@ object PocketCastsDbReader {
         return result
     }
 
-    private fun readEpisodes(db: SQLiteDatabase, columns: Set<String>): List<Episode> {
+    private fun readEpisodes(db: SQLiteDatabase, table: String, columns: Set<String>): List<Episode> {
         val uuid = pick(columns, "uuid")
             ?: throw IOException("Spalte 'uuid' fehlt in Tabelle 'episodes'")
         val podcastUuid = pick(columns, "podcast_uuid", "podcastUuid")
@@ -102,7 +102,7 @@ object PocketCastsDbReader {
             "${selectExpr(title, "title")}, ${selectExpr(duration, "duration")}, " +
             "${selectExpr(playedUpTo, "playedUpTo")}, ${selectExpr(playedStatus, "playedStatus")}, " +
             "${selectExpr(published, "published")}, ${selectExpr(added, "added")}, " +
-            "${selectExpr(archived, "archived")} FROM episodes"
+            "${selectExpr(archived, "archived")} FROM $table"
         val result = mutableListOf<Episode>()
         db.rawQuery(sql, null).use { c ->
             val iUuid = c.getColumnIndexOrThrow("uuid")
@@ -123,8 +123,8 @@ object PocketCastsDbReader {
                         durationSec = c.getLongOrZero(iDuration),
                         playedUpToSec = c.getLongOrZero(iPlayedUpTo),
                         playedStatus = c.getIntOrZero(iPlayedStatus),
-                        publishedEpochSec = c.getLongOrNull(iPublished),
-                        addedEpochSec = c.getLongOrNull(iAdded),
+                        publishedEpochSec = c.getLongOrNull(iPublished)?.let(::normalizeEpoch),
+                        addedEpochSec = c.getLongOrNull(iAdded)?.let(::normalizeEpoch),
                         archived = c.getIntOrZero(iArchived) != 0,
                     )
                 )

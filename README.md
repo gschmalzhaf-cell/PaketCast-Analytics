@@ -24,30 +24,66 @@ auf dem Gerät – es gibt keine Netzwerkzugriffe.
   Tabelle, zeigt der Screen einen entsprechenden Hinweis) mit Gesamtsumme
   und Ø pro aktivem Tag.
 
-## Datenquelle
+## Datenquelle: wie komme ich an die Pocket-Casts-Daten?
 
-Pocket Casts bietet keinen offiziellen Export der Hörstatistik. Die App liest
-daher eine **Kopie der Pocket-Casts-Datenbank** `pocketcasts.db`:
+Pocket Casts ist **Open Source** (seit Okt. 2022, MPL 2.0):
+[github.com/Automattic/pocket-casts-android](https://github.com/Automattic/pocket-casts-android)
+(plus `pocket-casts-ios`). Das DB-Schema (Room-Entities, z. B. Tabelle
+`podcast_episodes`) ist dort unter `modules/services/model` einsehbar –
+diese App liest sowohl das alte Schema (`episodes`) als auch das Room-Schema
+(`podcast_episodes`), inkl. Sekunden/Millisekunden-Zeitstempeln.
+
+### Variante A – Datenbank-Export direkt in der Pocket-Casts-App (ohne Root, empfohlen)
+
+Neuere Pocket-Casts-Versionen können die Datenbank selbst exportieren
+(siehe Pocket-Casts-Support: „Exporting the App Database“):
+
+1. In Pocket Casts: **Profil/Einstellungen → (Erweitert/Support) → Datenbank exportieren**
+   (liefert eine ZIP/DB per Teilen-Dialog).
+2. Datei auf den PC übertragen (USB, Cloud, Mail an sich selbst).
+3. In PaketCast Analytics oben rechts auf das Import-Symbol tippen und die
+   `pocketcasts.db` (ggf. aus der ZIP entpacken) auswählen.
+
+### Variante B – gerootetes Gerät + adb
 
 - Paketname: `au.com.shiftyjelly.pocketcasts`
 - Pfad: `/data/data/au.com.shiftyjelly.pocketcasts/databases/pocketcasts.db`
 
-Ablauf (einmalig pro Datenstand):
+```bash
+adb shell "su -c 'cp /data/data/au.com.shiftyjelly.pocketcasts/databases/pocketcasts.db* /sdcard/'"
+adb pull /sdcard/pocketcasts.db        # + pocketcasts.db-wal / -shm, falls vorhanden
+```
 
-1. Mit gerootetem Gerät oder per `adb backup` die Datenbank kopieren, z. B.:
-   - `adb shell "su -c 'cp /data/data/au.com.shiftyjelly.pocketcasts/databases/pocketcasts.db /sdcard/'"` und anschließend `adb pull /sdcard/pocketcasts.db`
-   - oder `adb backup -noapk au.com.shiftyjelly.pocketcasts` (Backup enthält die Datenbank)
-2. In der App oben rechts auf das Import-Symbol tippen und die Datei
-   `pocketcasts.db` auswählen.
+Hinweis WAL-Modus: Liegt die DB im WAL-Modus, fehlen in der reinen
+`pocketcasts.db` evtl. die neuesten Einträge – am besten Pocket Casts sauber
+beenden oder `pocketcasts.db-wal`/`-shm` mitkopieren.
 
-Alternativ kann der **OPML-Export** aus Pocket Casts importiert werden
-(Einstellungen → Import & Export). Damit sieht man die Liste der Abos; für die
-Statistiken wird aber die Datenbank benötigt.
+### Variante C – adb backup (eingeschränkt)
 
-Hinweis: Falls die Datenbank im WAL-Modus vorliegt, kann die reine
-`pocketcasts.db` die neuesten Daten vermissen. Am besten die App sauber
-beenden oder die gesamte `databases`-Schreibweise inklusive `-wal`-Datei
-kopieren.
+`adb backup -noapk au.com.shiftyjelly.pocketcasts` funktioniert nur, wenn die
+App `allowBackup` erlaubt; seit Android 12 ist `adb backup` für die meisten
+Apps deaktiviert. Das Backup (.ab) lässt sich z. B. mit
+[android-backup-extractor](https://github.com/ultra-utility/android-backup-extractor)
+entpacken.
+
+### Alternative: OPML-Export
+
+Einstellungen → Import & Export → OPML exportieren. Damit sieht man in der App
+die Liste der Abos; für Statistiken wird aber die Datenbank benötigt.
+
+### Gibt es eine API?
+
+**Offiziell nein** – laut [Pocket-Casts-Support](https://support.pocketcasts.com/knowledge-base/pocket-casts-api/)
+gibt es keine öffentliche API (Feature-Request offen). Es existiert jedoch eine
+**inoffizielle interne API** (`https://api.pocketcasts.com`), die der Web-Player
+nutzt: `POST /user/login` (E-Mail + Passwort) liefert ein Bearer-Token, damit z. B.
+`POST /user/history` (laut Forum auf ca. 100 Einträge begrenzt). Bekannte Wrapper:
+[npm `pocketcasts`](https://www.npmjs.com/package/pocketcasts),
+[PyPI `pocketcasts-api`](https://pypi.org/project/pocketcasts-api/).
+Risiken: Endpunkte können ohne Vorwarnung ändern/abgeschaltet werden; Login
+erfordert das Account-Passwort. Daher nutzt diese App bewusst den lokalen
+DB-Import (keine Cloud, keine Passwörter). Ein optionaler Login über die
+inoffizielle API ist als Roadmap-Punkt vorgemerkt.
 
 ## Annahmen zur Auswertung
 
@@ -162,6 +198,7 @@ Die App benötigt keine Berechtigungen und keine Internetverbindung. Die
 ## Roadmap / Ideen
 
 - [x] Hörverlauf pro Tag/Woche (v1.1.0, via `episode_interactions`)
+- [ ] Login über die inoffizielle Pocket-Casts-API (`api.pocketcasts.com/user/*`) statt DB-Import
 - [ ] Export der Statistiken als CSV/JSON
 - [ ] Filter nach Zeitraum
 - [ ] Vergleich mehrerer Importe (Entwicklung über die Zeit)
