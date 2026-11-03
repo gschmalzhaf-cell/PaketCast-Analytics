@@ -8,6 +8,8 @@ automatisch als Beschreibung (Release Notes) im GitHub-Release des Tags.
 
 ## [Unreleased]
 
+## [v1.2.1]
+
 ### Behoben
 - Bottom-Navigation: Tippen auf einen Tab wechselt jetzt zuverlässig den Screen (bisher blieb durch `saveState`/`restoreState` teils der alte Screen stehen) – vereinfacht auf `navigate` mit `popUpTo(start)` ohne State-Save
 
