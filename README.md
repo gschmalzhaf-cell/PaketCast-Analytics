@@ -113,9 +113,25 @@ git tag v1.0.0
 git push origin v1.0.0
 ```
 
-Der Workflow erstellt dann automatisch das GitHub Release mit APK (signiert) und AAB.
+Der Workflow erstellt dann automatisch das GitHub Release. Die Assets heißen:
+
+- `PaketCast-Analytics-<Version>.apk` – signierte APK (sobald der Keystore konfiguriert ist)
+- `PaketCast-Analytics-<Version>-debug.apk` – debug-signierte Test-APK (ohne Keystore)
+- `PaketCast-Analytics-<Version>.aab` – signiertes Bundle für den Play Store
+
 Jeder Push auf `vibe/**` bzw. jeder PR wird außerdem von `.github/workflows/build.yml`
 gebaut und getestet (`assembleDebug testDebugUnitTest`).
+
+### Installation mit Obtainium
+
+1. Obtainium installieren (z. B. über F-Droid).
+2. In Obtainium „App hinzufügen“ → Quelle **GitHub** → Repository `gschmalzhaf-cell/PaketCast-Analytics`.
+3. Release `v1.0.0` auswählen und als Asset das APK mit dem Muster `PaketCast-Analytics-.*\.apk` wählen
+   (aktuell `PaketCast-Analytics-1.0.0-debug.apk`; nach dem Keystore-Setup `PaketCast-Analytics-1.0.0.apk`).
+4. Bei jedem neuen Tag (z. B. `v1.0.1`) meldet Obtainium automatisch ein verfügbares Update.
+
+Hinweis: Die debug-signierte und die später signierte Version haben unterschiedliche Signaturen –
+beim Wechsel einmal deinstallieren (die importierte Datenbank liegt im App-Speicher).
 
 ## Datenschutz
 
