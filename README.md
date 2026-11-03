@@ -99,13 +99,18 @@ Das Skript erzeugt `local-secrets/paketcast-release.keystore` plus `local-secret
 Manuell geht es so:
 
 ```bash
-keytool -genkey -v -keystore release.keystore -alias paketcast \
+# Es wird kein vorhandener Keystore benötigt – keytool legt einen neuen an (PKCS12):
+keytool -genkey -v -storetype PKCS12 -keystore release.keystore -alias paketcast \
   -keyalg RSA -keysize 2048 -validity 10000
 # Keystore als Base64 in ein Secret packen (Linux):
 base64 -w0 release.keystore
 # macOS:
 # base64 -i release.keystore
 ```
+
+Hinweis: Bestehenden **JKS**-Keystore wiederverwenden? Dann in `app/build.gradle.kts`
+im `signingConfigs.release` statt `storeType = "PKCS12"` den Wert `"JKS"` setzen.
+Die Dateiendung (`.jks`/`.keystore`/`.p12`) ist egal – das Format zählt.
 
 Im Repo unter **Settings → Secrets and variables → Actions** anlegen:
 

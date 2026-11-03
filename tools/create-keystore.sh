@@ -20,7 +20,8 @@ if [ -f "$KS" ]; then
 fi
 
 echo "== 1/3 Keystore erstellen (Passwörter selbst vergeben und im Passwort-Manager speichern!) =="
-keytool -genkey -v -keystore "$KS" -alias "$ALIAS" -keyalg RSA -keysize 2048 -validity 10000
+echo "   Es wird KEIN vorhandener Keystore benötigt – keytool legt einen neuen an (Format PKCS12)."
+keytool -genkey -v -storetype PKCS12 -keystore "$KS" -alias "$ALIAS" -keyalg RSA -keysize 2048 -validity 10000
 
 echo "== 2/3 Base64-Datei schreiben =="
 if base64 -w0 "$KS" > "$B64" 2>/dev/null; then
