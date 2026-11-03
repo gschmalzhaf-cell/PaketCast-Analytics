@@ -55,6 +55,7 @@ class AnalyticsRepository(private val context: Context) {
                     sourceName = "pocketcasts.db",
                     podcasts = data.podcasts,
                     episodes = data.episodes,
+                    playbackEvents = data.playbackEvents,
                 )
             }
         }

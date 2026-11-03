@@ -2,6 +2,7 @@ package com.paketcast.analytics.stats
 
 import com.paketcast.analytics.data.model.Episode
 import com.paketcast.analytics.data.model.Podcast
+import java.time.LocalDate
 
 enum class EpisodeProgress {
     UNPLAYED,
@@ -64,6 +65,24 @@ data class RemainingStats(
     val episodes: List<EpisodeWithPodcast>,
 )
 
+data class DayBucket(
+    val date: LocalDate,
+    val seconds: Long,
+)
+
+data class WeekBucket(
+    val weekStart: LocalDate,
+    val seconds: Long,
+)
+
+data class HistoryStats(
+    val available: Boolean,
+    val daily: List<DayBucket>,
+    val weekly: List<WeekBucket>,
+    val totalSeconds: Long,
+    val eventCount: Int,
+)
+
 data class AnalyticsSnapshot(
     val sourceName: String,
     val importedAtEpochSec: Long,
@@ -73,4 +92,5 @@ data class AnalyticsSnapshot(
     val networks: List<NetworkStats>,
     val extremes: EpisodeExtremes,
     val remaining: RemainingStats,
+    val history: HistoryStats,
 )

@@ -3,6 +3,7 @@ package com.paketcast.analytics.data.db
 import android.database.Cursor
 import android.database.sqlite.SQLiteDatabase
 import com.paketcast.analytics.data.model.Episode
+import com.paketcast.analytics.data.model.PlaybackEvent
 import com.paketcast.analytics.data.model.PocketCastsData
 import com.paketcast.analytics.data.model.Podcast
 import java.io.IOException
@@ -28,7 +29,8 @@ object PocketCastsDbReader {
             }
             val podcasts = readPodcasts(db, podcastColumns)
             val episodes = readEpisodes(db, episodeColumns)
-            return PocketCastsData(podcasts, episodes)
+            val playbackEvents = readPlaybackEvents(db)
+            return PocketCastsData(podcasts, episodes, playbackEvents)
         } finally {
             db.close()
         }
@@ -129,6 +131,63 @@ object PocketCastsDbReader {
             }
         }
         return result
+    }
+
+    /**
+     * Liest optional die Hör-Historie. Pocket-Casts-Versionen unterscheiden sich
+     * (Tabellen-/Spaltennamen, Sekunden vs. Millisekunden) – daher defensive
+     * Namensauflösung; fehlt alles, ist das Ergebnis einfach leer.
+     */
+    private fun readPlaybackEvents(db: SQLiteDatabase): List<PlaybackEvent> {
+        val table = listOf("episode_interactions", "playback_events", "user_episode_interactions", "episode_history")
+            .firstOrNull { columnsOf(db, it).isNotEmpty() } ?: return emptyList()
+        val columns = columnsOf(db, table)
+        val episode = pick(columns, "episode_uuid", "episodeUuid", "episode")
+        val time = pick(columns, "time", "timestamp", "date", "created", "epoch", "added_date")
+        val seconds = pick(columns, "duration", "seconds", "played_up_to", "playedUpTo", "length")
+        val action = pick(columns, "action", "type", "event")
+        if (time == null) return emptyList()
+        val sql = buildString {
+            append("SELECT ")
+            append(if (episode != null) "$episode AS episodeUuid" else "NULL AS episodeUuid")
+            append(", ")
+            append("$time AS time")
+            append(", ")
+            append(if (seconds != null) "$seconds AS seconds" else "0 AS seconds")
+            if (action != null) {
+                append(", ")
+                append("$action AS action")
+            }
+            append(" FROM $table")
+        }
+        val playActions = setOf("play", "played", "listen", "listened", "playback", "resume", "started")
+        val result = mutableListOf<PlaybackEvent>()
+        db.rawQuery(sql, null).use { c ->
+            val iEpisode = c.getColumnIndexOrThrow("episodeUuid")
+            val iTime = c.getColumnIndexOrThrow("time")
+            val iSeconds = c.getColumnIndexOrThrow("seconds")
+            val iAction = if (action != null) c.getColumnIndexOrThrow("action") else -1
+            while (c.moveToNext()) {
+                if (iAction >= 0) {
+                    val a = c.getString(iAction)?.lowercase()
+                    if (a != null && a !in playActions) continue
+                }
+                val rawTime = c.getLongOrZero(iTime)
+                result.add(
+                    PlaybackEvent(
+                        episodeUuid = c.getString(iEpisode),
+                        epochSec = normalizeEpoch(rawTime),
+                        seconds = c.getLongOrZero(iSeconds).coerceAtLeast(0L),
+                    )
+                )
+            }
+        }
+        return result
+    }
+
+    private fun normalizeEpoch(raw: Long): Long = when {
+        raw > 10_000_000_000_000L -> raw / 1000L
+        else -> raw
     }
 
     private fun Cursor.getLongOrNull(index: Int): Long? =

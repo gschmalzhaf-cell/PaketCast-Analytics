@@ -7,6 +7,7 @@ Die SELECT-Anweisungen und Grenzwerte (FINISH_TOLERANCE_SEC = 10) entsprechen
 
 Aufruf: python3 tools/verify_stats.py
 """
+import datetime
 import os
 import sqlite3
 import sys
@@ -23,6 +24,11 @@ EPISODES_SQL = (
     "duration AS duration, played_up_to AS playedUpTo, played_status AS playedStatus, "
     "published_date AS published, added_date AS added, archived AS archived FROM episodes"
 )
+EVENTS_SQL = (
+    "SELECT episode_uuid AS episodeUuid, time AS time, duration AS seconds, action AS action "
+    "FROM episode_interactions"
+)
+PLAY_ACTIONS = {"play", "played", "listen", "listened", "playback", "resume", "started"}
 
 
 def listened_seconds(duration, played_up_to):
@@ -63,6 +69,13 @@ def build_db(path):
             archived INTEGER,
             size INTEGER
         );
+        CREATE TABLE episode_interactions (
+            id INTEGER PRIMARY KEY,
+            episode_uuid TEXT,
+            action TEXT,
+            time INTEGER,
+            duration INTEGER
+        );
         """
     )
     db.executemany(
@@ -82,6 +95,15 @@ def build_db(path):
             ("e4", "p2", "B2", 120, 120, 3, 1700004000, 1700004000, 1, 1000),
             ("e5", "p3", "G1", 0, 45, 1, 1700005000, 1700005000, 0, 1000),
             ("e6", "p1", "A3", 3600, 100, 1, 1700006000, 1700006000, 0, 1000),
+        ],
+    )
+    db.executemany(
+        "INSERT INTO episode_interactions VALUES (?,?,?,?,?)",
+        [
+            (1, "e1", "played", 1700001000, 600),
+            (2, "e1", "played", 1700087400, 600),
+            (3, "e2", "played", 1700087400 + 3600, 300),
+            (4, "e3", "downloaded", 1700090000, 0),
         ],
     )
     db.commit()
@@ -147,12 +169,28 @@ def main():
         assert longest["uuid"] == "e6" and longest["duration"] == 3600
         assert shortest["uuid"] == "e4" and shortest["duration"] == 120
 
+        db2 = sqlite3.connect(db_path)
+        db2.row_factory = sqlite3.Row
+        events = [dict(r) for r in db2.execute(EVENTS_SQL)]
+        db2.close()
+        play_events = [e for e in events if e["action"].lower() in PLAY_ACTIONS]
+        assert len(play_events) == 3, play_events
+        total_hist = sum(e["seconds"] for e in play_events)
+        assert total_hist == 600 + 600 + 300, total_hist
+        days = {}
+        for e in play_events:
+            d = datetime.datetime.fromtimestamp(e["time"], datetime.timezone.utc).date()
+            days[d] = days.get(d, 0) + e["seconds"]
+        assert sum(days.values()) == 1500
+        assert len(days) == 2
+
         print("OK: Alle Assertions bestanden.")
         print(f"  Gesamte Hörzeit: {total_listened} s")
         print(f"  Abgeschlossen: {len(finished)}, in Arbeit: {len(in_progress)}, ungespielt: {unplayed}")
         print(f"  Noch zu hören: {total_remaining} s über {len(open_eps)} offene Folgen")
         print(f"  Netzwerke: {sorted(networks)}")
         print(f"  Längste Folge: {longest['uuid']} ({longest['duration']} s), kürzeste: {shortest['uuid']} ({shortest['duration']} s)")
+        print(f"  Verlauf: {total_hist} s über {len(play_events)} Play-Events an {len(days)} Tagen")
 
 
 if __name__ == "__main__":

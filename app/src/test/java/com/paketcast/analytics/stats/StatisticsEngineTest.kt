@@ -1,11 +1,14 @@
 package com.paketcast.analytics.stats
 
 import com.paketcast.analytics.data.model.Episode
+import com.paketcast.analytics.data.model.PlaybackEvent
 import com.paketcast.analytics.data.model.Podcast
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
+import java.time.LocalDate
+import java.time.ZoneId
 
 class StatisticsEngineTest {
 
@@ -140,6 +143,38 @@ class StatisticsEngineTest {
         assertEquals(900, snapshot.remaining.totalRemainingSec)
         assertEquals(1, snapshot.remaining.openEpisodeCount)
         assertEquals("e2", snapshot.remaining.episodes.single().episode.uuid)
+    }
+
+    @Test
+    fun `history aggregates events per day and week`() {
+        val zone = ZoneId.of("Europe/Berlin")
+        val day1 = LocalDate.of(2026, 10, 27) // Montag
+        val day2 = LocalDate.of(2026, 10, 28)
+        fun at(date: LocalDate, hour: Int) =
+            java.time.ZonedDateTime.of(date.atTime(hour, 0), zone).toEpochSecond()
+        val events = listOf(
+            PlaybackEvent("e1", at(day1, 8), 600),
+            PlaybackEvent("e1", at(day1, 20), 400),
+            PlaybackEvent("e2", at(day2, 9), 1500),
+        )
+        val history = StatisticsEngine.buildHistory(events, zone)
+        assertTrue(history.available)
+        assertEquals(3, history.eventCount)
+        assertEquals(2500, history.totalSeconds)
+        assertEquals(2, history.daily.size)
+        assertEquals(1000, history.daily[0].seconds)
+        assertEquals(day1, history.daily[0].date)
+        assertEquals(1500, history.daily[1].seconds)
+        assertEquals(1, history.weekly.size)
+        assertEquals(day1, history.weekly[0].weekStart)
+        assertEquals(2500, history.weekly[0].seconds)
+    }
+
+    @Test
+    fun `history is unavailable without events`() {
+        val history = StatisticsEngine.buildHistory(emptyList())
+        assertFalse(history.available)
+        assertEquals(0, history.daily.size)
     }
 
     @Test

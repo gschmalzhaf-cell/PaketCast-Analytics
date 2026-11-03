@@ -12,6 +12,7 @@ import androidx.compose.material.icons.filled.Audiotrack
 import androidx.compose.material.icons.filled.BarChart
 import androidx.compose.material.icons.filled.Cloud
 import androidx.compose.material.icons.filled.Dashboard
+import androidx.compose.material.icons.filled.History
 import androidx.compose.material.icons.filled.Schedule
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.filled.UploadFile
@@ -42,6 +43,7 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.paketcast.analytics.data.repository.AnalyticsState
 import com.paketcast.analytics.ui.screens.EpisodesScreen
+import com.paketcast.analytics.ui.screens.HistoryScreen
 import com.paketcast.analytics.ui.screens.NetworksScreen
 import com.paketcast.analytics.ui.screens.OverviewScreen
 import com.paketcast.analytics.ui.screens.PodcastsScreen
@@ -58,6 +60,7 @@ private val screens = listOf(
     Screen("networks", "Netzwerke", Icons.Default.Cloud),
     Screen("episodes", "Episoden", Icons.Default.BarChart),
     Screen("remaining", "Offen", Icons.Default.Schedule),
+    Screen("history", "Verlauf", Icons.Default.History),
 )
 
 private const val DB_MIME_TYPES = "application/octet-stream,application/x-sqlite3,application/vnd.sqlite3,*/*"
@@ -126,6 +129,7 @@ fun PaketCastApp(viewModel: AnalyticsViewModel = viewModel()) {
             composable("networks") { NetworksScreen(state) }
             composable("episodes") { EpisodesScreen(state) }
             composable("remaining") { RemainingScreen(state) }
+            composable("history") { HistoryScreen(state) }
         }
     }
 

@@ -25,7 +25,19 @@ data class OpmlSubscription(
     val feedUrl: String?,
 )
 
+/**
+ * Einzelnes Hör-Event aus der Pocket-Casts-Historie (z. B. Tabelle
+ * `episode_interactions`). `seconds` = in diesem Event gehörte Sekunden
+ * (0, wenn die DB keine Dauer pro Event speichert).
+ */
+data class PlaybackEvent(
+    val episodeUuid: String?,
+    val epochSec: Long,
+    val seconds: Long,
+)
+
 data class PocketCastsData(
     val podcasts: List<Podcast>,
     val episodes: List<Episode>,
+    val playbackEvents: List<PlaybackEvent> = emptyList(),
 )

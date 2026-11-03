@@ -19,6 +19,10 @@ auf dem Gerät – es gibt keine Netzwerkzugriffe.
 - **Episoden:** längste und kürzeste Folgen (Top 10 jeweils).
 - **Offen:** was ist noch zu hören – Restzeit gesamt, offen pro Podcast und
   Liste der offenen Folgen (neueste zuerst).
+- **Verlauf (ab v1.1.0):** Hörzeit pro Tag/Woche als Balkendiagramm
+  (aus der Verlauf-Tabelle `episode_interactions` der Datenbank; fehlt diese
+  Tabelle, zeigt der Screen einen entsprechenden Hinweis) mit Gesamtsumme
+  und Ø pro aktivem Tag.
 
 ## Datenquelle
 
@@ -157,7 +161,7 @@ Die App benötigt keine Berechtigungen und keine Internetverbindung. Die
 
 ## Roadmap / Ideen
 
-- [ ] Hörverlauf pro Tag/Woche (sobald Zeitstempel des Hörens verfügbar sind)
+- [x] Hörverlauf pro Tag/Woche (v1.1.0, via `episode_interactions`)
 - [ ] Export der Statistiken als CSV/JSON
 - [ ] Filter nach Zeitraum
 - [ ] Vergleich mehrerer Importe (Entwicklung über die Zeit)

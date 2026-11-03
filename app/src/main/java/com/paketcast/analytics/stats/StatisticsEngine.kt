@@ -1,8 +1,13 @@
 package com.paketcast.analytics.stats
 
 import com.paketcast.analytics.data.model.Episode
+import com.paketcast.analytics.data.model.PlaybackEvent
 import com.paketcast.analytics.data.model.Podcast
 import java.net.URI
+import java.time.Instant
+import java.time.LocalDate
+import java.time.ZoneId
+import java.time.temporal.WeekFields
 
 /**
  * Reine Berechnungslogik für alle Statistiken – ohne Android-Abhängigkeiten,
@@ -78,11 +83,37 @@ object StatisticsEngine {
         )
     }
 
+    fun buildHistory(
+        events: List<PlaybackEvent>,
+        zone: ZoneId = ZoneId.systemDefault(),
+    ): HistoryStats {
+        if (events.isEmpty()) {
+            return HistoryStats(available = false, daily = emptyList(), weekly = emptyList(), totalSeconds = 0L, eventCount = 0)
+        }
+        val daily = events
+            .groupBy { Instant.ofEpochSecond(it.epochSec).atZone(zone).toLocalDate() }
+            .map { (date, evts) -> DayBucket(date, evts.sumOf { it.seconds }) }
+            .sortedBy { it.date }
+        val weekStartOf = { date: LocalDate -> date.with(WeekFields.ISO.dayOfWeek(), 1) }
+        val weekly = events
+            .groupBy { weekStartOf(Instant.ofEpochSecond(it.epochSec).atZone(zone).toLocalDate()) }
+            .map { (weekStart, evts) -> WeekBucket(weekStart, evts.sumOf { it.seconds }) }
+            .sortedBy { it.weekStart }
+        return HistoryStats(
+            available = true,
+            daily = daily,
+            weekly = weekly,
+            totalSeconds = events.sumOf { it.seconds },
+            eventCount = events.size,
+        )
+    }
+
     fun buildSnapshot(
         sourceName: String,
         podcasts: List<Podcast>,
         episodes: List<Episode>,
         importedAtEpochSec: Long = System.currentTimeMillis() / 1000L,
+        playbackEvents: List<PlaybackEvent> = emptyList(),
     ): AnalyticsSnapshot {
         val podcastByUuid = podcasts.associateBy { it.uuid }
         val episodesByPodcast = episodes.groupBy { it.podcastUuid }
@@ -179,6 +210,7 @@ object StatisticsEngine {
             networks = networks,
             extremes = extremes,
             remaining = remaining,
+            history = buildHistory(playbackEvents),
         )
     }
 }
