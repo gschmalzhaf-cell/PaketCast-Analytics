@@ -166,7 +166,7 @@ class StatisticsEngineTest {
         assertEquals(day1, history.daily[0].date)
         assertEquals(1500, history.daily[1].seconds)
         assertEquals(1, history.weekly.size)
-        assertEquals(day1, history.weekly[0].weekStart)
+        assertEquals(day1.with(java.time.temporal.WeekFields.ISO.dayOfWeek(), 1), history.weekly[0].weekStart)
         assertEquals(2500, history.weekly[0].seconds)
     }
 
