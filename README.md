@@ -205,9 +205,15 @@ beim Wechsel einmal deinstallieren (die importierte Datenbank liegt im App-Speic
 
 ## Datenschutz
 
-Die App benötigt keine Berechtigungen und keine Internetverbindung. Die
- gewählte Datei wird in den privaten App-Speicher kopiert und nur lokal
- ausgelesen.
+Ohne Konto-Verbindung arbeitet die App komplett offline: Die gewählte Datei
+wird in den privaten App-Speicher kopiert und nur lokal ausgelesen.
+
+**Ausnahme „Konto verbinden“ (v1.3.0):** Dabei werden E-Mail + Passwort einmalig
+an `https://api.pocketcasts.com/user/login` (inoffizielle API des Web-Players)
+gesendet; die App erhält ein Bearer-Token und lädt Abos/Verlauf/Sternchen von
+`api.pocketcasts.com`. Das Passwort wird nicht gespeichert, der Token nur im
+Arbeitsspeicher gehalten. Es findet keine weitere Netzwerkkommunikation statt
+(INTERNET-Berechtigung wird nur für diesen optionalen Schritt genutzt).
 
 ## Roadmap / Ideen
 
