@@ -14,6 +14,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.paketcast.analytics.data.repository.AnalyticsState
+import com.paketcast.analytics.ui.components.ApiAccountState
 import com.paketcast.analytics.ui.components.EmptyState
 import com.paketcast.analytics.ui.components.EpisodeRow
 import com.paketcast.analytics.ui.components.PodcastStatRow
@@ -31,6 +32,7 @@ fun OverviewScreen(
     StateScaffold(
         state = state,
         emptyContent = { EmptyState(onImportDatabase, onImportOpml) },
+        apiContent = { ApiAccountState(it) },
     ) { snapshot ->
         val overview = snapshot.overview
         LazyColumn(modifier = Modifier.fillMaxSize()) {

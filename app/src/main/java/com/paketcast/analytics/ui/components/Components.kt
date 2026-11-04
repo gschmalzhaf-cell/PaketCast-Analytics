@@ -35,14 +35,34 @@ fun StateScaffold(
     state: AnalyticsState,
     emptyContent: @Composable () -> Unit = { NoDataHint() },
     content: @Composable (AnalyticsSnapshot) -> Unit,
+    apiContent: @Composable (PocketCastsApiClient.ApiAccount) -> Unit = {
+        ApiNeedsDatabaseHint()
+    },
 ) {
     when (state) {
         is AnalyticsState.Loading -> LoadingState()
         is AnalyticsState.Error -> ErrorState(state.message)
         is AnalyticsState.Empty -> emptyContent()
         is AnalyticsState.OpmlOnly -> OpmlOnlyState(state.subscriptions)
-        is AnalyticsState.ApiLoaded -> ApiAccountState(state.account)
+        is AnalyticsState.ApiLoaded -> apiContent(state.account)
         is AnalyticsState.Loaded -> content(state.snapshot)
+    }
+}
+
+@Composable
+fun ApiNeedsDatabaseHint() {
+    Column(
+        modifier = Modifier.fillMaxSize().padding(24.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center,
+    ) {
+        Text("Diese Ansicht braucht die pocketcasts.db", style = MaterialTheme.typography.titleMedium)
+        Spacer(Modifier.height(8.dp))
+        Text(
+            "Über die API kommen nur Abos, Verlauf und Sternchen. Für Top 10, Netzwerke, " +
+                "Episoden und „Offen“ oben rechts auf das Import-Symbol tippen und die Datenbank wählen.",
+            style = MaterialTheme.typography.bodyMedium,
+        )
     }
 }
 
