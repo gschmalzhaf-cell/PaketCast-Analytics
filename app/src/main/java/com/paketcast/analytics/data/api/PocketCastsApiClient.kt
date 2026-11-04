@@ -88,8 +88,7 @@ object PocketCastsApiClient {
     /** Mappt die /user/history-Antwort auf PlaybackEvents (defensiv gegen Feldnamen-Varianten). */
     fun historyEventsFromJson(json: String): List<PlaybackEvent> {
         val root = MiniJson.parseObject(json)
-        val rows = asList(pick(root, "episodes", "history", "items")) +
-            asList(root["episodes"] ?: root["history"])
+        val rows = asList(pick(root, "episodes", "history", "items", "list"))
         return rows.mapNotNull { row ->
             val m = asMap(row)
             val time = pick(m, "time", "played_at", "playedAt", "date", "timestamp") ?: return@mapNotNull null
