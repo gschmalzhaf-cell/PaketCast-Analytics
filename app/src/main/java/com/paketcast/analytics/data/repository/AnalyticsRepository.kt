@@ -2,6 +2,7 @@ package com.paketcast.analytics.data.repository
 
 import android.content.Context
 import android.net.Uri
+import com.paketcast.analytics.data.api.PocketCastsApiClient
 import com.paketcast.analytics.data.db.PocketCastsDbReader
 import com.paketcast.analytics.data.model.OpmlSubscription
 import com.paketcast.analytics.data.opml.OpmlParser
@@ -23,6 +24,7 @@ sealed interface AnalyticsState {
         val opmlSubscriptions: List<OpmlSubscription>,
     ) : AnalyticsState
     data class OpmlOnly(val subscriptions: List<OpmlSubscription>) : AnalyticsState
+    data class ApiLoaded(val account: PocketCastsApiClient.ApiAccount) : AnalyticsState
     data class Error(val message: String) : AnalyticsState
 }
 
@@ -62,6 +64,25 @@ class AnalyticsRepository(private val context: Context) {
         _state.value = result.fold(
             onSuccess = { snapshot -> AnalyticsState.Loaded(snapshot, opmlSubscriptions) },
             onFailure = { AnalyticsState.Error(it.message ?: "Unbekannter Fehler beim Import") },
+        )
+    }
+
+    /**
+     * Verbindet das Pocket-Casts-Konto über die inoffizielle API
+     * (api.pocketcasts.com). Das Passwort wird nur für den Login-Request
+     * verwendet und nirgends gespeichert; der Token bleibt im Speicher.
+     */
+    suspend fun connectAccount(email: String, password: String) {
+        _state.value = AnalyticsState.Loading
+        val result = withContext(Dispatchers.IO) {
+            runCatching {
+                val token = PocketCastsApiClient.login(email, password)
+                PocketCastsApiClient.fetchAccount(token)
+            }
+        }
+        _state.value = result.fold(
+            onSuccess = { AnalyticsState.ApiLoaded(it) },
+            onFailure = { AnalyticsState.Error(it.message ?: "Verbindung zur Pocket-Casts-API fehlgeschlagen") },
         )
     }
 

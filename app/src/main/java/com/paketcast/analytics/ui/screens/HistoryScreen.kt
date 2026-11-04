@@ -28,8 +28,8 @@ import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import com.paketcast.analytics.data.repository.AnalyticsState
-import com.paketcast.analytics.stats.DayBucket
-import com.paketcast.analytics.stats.WeekBucket
+import com.paketcast.analytics.stats.HistoryStats
+import com.paketcast.analytics.stats.StatisticsEngine
 import com.paketcast.analytics.ui.components.SectionHeader
 import com.paketcast.analytics.ui.components.StateScaffold
 import com.paketcast.analytics.ui.format.Format
@@ -41,78 +41,87 @@ private const val MAX_WEEKS = 12
 
 private val PrimaryBar = Color(0xFF6750A4)
 private val EmptyBar = Color(0xFFE0E0E0)
+private val DayPattern = DateTimeFormatter.ofPattern("dd.MM.", Locale.GERMANY)
 
 @Composable
 fun HistoryScreen(state: AnalyticsState) {
+    if (state is AnalyticsState.ApiLoaded) {
+        HistoryContent(StatisticsEngine.buildHistory(state.account.history))
+        return
+    }
     StateScaffold(state) { snapshot ->
-        val history = snapshot.history
-        Column(
-            modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(bottom = 16.dp),
-        ) {
-            if (!history.available) {
-                Column(
-                    modifier = Modifier.fillMaxWidth().padding(24.dp),
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                ) {
-                    Text("Kein Hörverlauf verfügbar", style = MaterialTheme.typography.titleMedium)
-                    Spacer(Modifier.height(8.dp))
-                    Text(
-                        "Diese pocketcasts.db enthält keine Verlauf-Tabelle (z. B. episode_interactions). " +
-                            "Damit sind nur die aggregierten Statistiken verfügbar.",
-                        style = MaterialTheme.typography.bodyMedium,
-                    )
-                }
-                return@StateScaffold
-            }
-            var showWeek by remember { mutableStateOf(false) }
-            val daily = history.daily.takeLast(MAX_DAYS)
-            val weekly = history.weekly.takeLast(MAX_WEEKS)
-            val activeDays = history.daily.count { it.seconds > 0 }
+        HistoryContent(snapshot.history)
+    }
+}
 
-            Row(
-                modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),
-                horizontalArrangement = Arrangement.spacedBy(16.dp),
+@Composable
+private fun HistoryContent(history: HistoryStats) {
+    Column(
+        modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(bottom = 16.dp),
+    ) {
+        if (!history.available) {
+            Column(
+                modifier = Modifier.fillMaxWidth().padding(24.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
             ) {
-                SummaryChip(
-                    label = "Verlauf gesamt",
-                    value = Format.duration(history.totalSeconds) + " · ${history.eventCount} Events",
-                    modifier = Modifier.weight(1f),
-                )
-                SummaryChip(
-                    label = "Ø pro aktivem Tag",
-                    value = if (activeDays > 0) Format.duration(history.daily.sumOf { it.seconds } / activeDays) else "–",
-                    modifier = Modifier.weight(1f),
+                Text("Kein Hörverlauf verfügbar", style = MaterialTheme.typography.titleMedium)
+                Spacer(Modifier.height(8.dp))
+                Text(
+                    "Weder die Datenbank enthält eine Verlauf-Tabelle (z. B. episode_interactions), " +
+                        "noch wurden Verlaufsdaten über die API geladen.",
+                    style = MaterialTheme.typography.bodyMedium,
                 )
             }
-            Spacer(Modifier.height(12.dp))
-            SingleChoiceSegmentedButtonRow(modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp)) {
-                SegmentedButton(
-                    selected = !showWeek,
-                    onClick = { showWeek = false },
-                    shape = SegmentedButtonDefaults.itemShape(index = 0, count = 2),
-                ) { Text("Tag") }
-                SegmentedButton(
-                    selected = showWeek,
-                    onClick = { showWeek = true },
-                    shape = SegmentedButtonDefaults.itemShape(index = 1, count = 2),
-                ) { Text("Woche") }
-            }
-            Spacer(Modifier.height(8.dp))
-            if (showWeek) {
-                HistoryChart(
-                    values = weekly.map { it.seconds },
-                    firstLabel = weekly.firstOrNull()?.weekStart?.format(DateTimeFormatter.ofPattern("dd.MM.", Locale.GERMANY)).orEmpty(),
-                    lastLabel = weekly.lastOrNull()?.weekStart?.format(DateTimeFormatter.ofPattern("dd.MM.", Locale.GERMANY)).orEmpty(),
-                    unit = "Wochen",
-                )
-            } else {
-                HistoryChart(
-                    values = daily.map { it.seconds },
-                    firstLabel = daily.firstOrNull()?.date?.format(DateTimeFormatter.ofPattern("dd.MM.", Locale.GERMANY)).orEmpty(),
-                    lastLabel = daily.lastOrNull()?.date?.format(DateTimeFormatter.ofPattern("dd.MM.", Locale.GERMANY)).orEmpty(),
-                    unit = "Tage",
-                )
-            }
+            return
+        }
+        var showWeek by remember { mutableStateOf(false) }
+        val daily = history.daily.takeLast(MAX_DAYS)
+        val weekly = history.weekly.takeLast(MAX_WEEKS)
+        val activeDays = history.daily.count { it.seconds > 0 }
+
+        Row(
+            modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),
+            horizontalArrangement = Arrangement.spacedBy(16.dp),
+        ) {
+            SummaryChip(
+                label = "Verlauf gesamt",
+                value = Format.duration(history.totalSeconds) + " · ${history.eventCount} Events",
+                modifier = Modifier.weight(1f),
+            )
+            SummaryChip(
+                label = "Ø pro aktivem Tag",
+                value = if (activeDays > 0) Format.duration(history.daily.sumOf { it.seconds } / activeDays) else "–",
+                modifier = Modifier.weight(1f),
+            )
+        }
+        Spacer(Modifier.height(12.dp))
+        SingleChoiceSegmentedButtonRow(modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp)) {
+            SegmentedButton(
+                selected = !showWeek,
+                onClick = { showWeek = false },
+                shape = SegmentedButtonDefaults.itemShape(index = 0, count = 2),
+            ) { Text("Tag") }
+            SegmentedButton(
+                selected = showWeek,
+                onClick = { showWeek = true },
+                shape = SegmentedButtonDefaults.itemShape(index = 1, count = 2),
+            ) { Text("Woche") }
+        }
+        Spacer(Modifier.height(8.dp))
+        if (showWeek) {
+            HistoryChart(
+                values = weekly.map { it.seconds },
+                firstLabel = weekly.firstOrNull()?.weekStart?.format(DayPattern).orEmpty(),
+                lastLabel = weekly.lastOrNull()?.weekStart?.format(DayPattern).orEmpty(),
+                unit = "Wochen",
+            )
+        } else {
+            HistoryChart(
+                values = daily.map { it.seconds },
+                firstLabel = daily.firstOrNull()?.date?.format(DayPattern).orEmpty(),
+                lastLabel = daily.lastOrNull()?.date?.format(DayPattern).orEmpty(),
+                unit = "Tage",
+            )
         }
     }
 }

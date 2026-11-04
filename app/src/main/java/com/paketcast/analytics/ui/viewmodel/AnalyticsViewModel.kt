@@ -22,4 +22,8 @@ class AnalyticsViewModel(application: Application) : AndroidViewModel(applicatio
     fun importOpml(uri: Uri) {
         viewModelScope.launch { repository.importOpml(uri) }
     }
+
+    fun connectAccount(email: String, password: String) {
+        viewModelScope.launch { repository.connectAccount(email, password) }
+    }
 }

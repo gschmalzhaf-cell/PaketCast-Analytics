@@ -24,9 +24,12 @@ import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -36,6 +39,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -87,6 +91,7 @@ fun PaketCastApp(viewModel: AnalyticsViewModel = viewModel()) {
         uri?.let { viewModel.importOpml(it) }
     }
     var showImportDialog by remember { mutableStateOf(false) }
+    var showLoginDialog by remember { mutableStateOf(false) }
     var showExportMenu by remember { mutableStateOf(false) }
     val context = LocalContext.current
 
@@ -206,10 +211,68 @@ fun PaketCastApp(viewModel: AnalyticsViewModel = viewModel()) {
                     ) {
                         Text("OPML-Export wählen")
                     }
+                    Spacer(Modifier.height(8.dp))
+                    OutlinedButton(
+                        onClick = {
+                            showImportDialog = false
+                            showLoginDialog = true
+                        },
+                        modifier = Modifier.fillMaxWidth(),
+                    ) {
+                        Text("Pocket-Casts-Konto verbinden (API)…")
+                    }
                 }
             },
             confirmButton = {
                 TextButton(onClick = { showImportDialog = false }) { Text("Schließen") }
+            },
+        )
+    }
+
+    if (showLoginDialog) {
+        var email by remember { mutableStateOf("") }
+        var password by remember { mutableStateOf("") }
+        val loading = state is AnalyticsState.Loading
+        AlertDialog(
+            onDismissRequest = { if (!loading) showLoginDialog = false },
+            title = { Text("Pocket-Casts-Konto") },
+            text = {
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Text(
+                        "Login über die inoffizielle API (api.pocketcasts.com). Das Passwort wird nur für " +
+                            "den Login-Request verwendet und nicht gespeichert.",
+                        style = MaterialTheme.typography.bodySmall,
+                    )
+                    OutlinedTextField(
+                        value = email,
+                        onValueChange = { email = it },
+                        label = { Text("E-Mail") },
+                        singleLine = true,
+                        modifier = Modifier.fillMaxWidth(),
+                        enabled = !loading,
+                    )
+                    OutlinedTextField(
+                        value = password,
+                        onValueChange = { password = it },
+                        label = { Text("Passwort") },
+                        singleLine = true,
+                        modifier = Modifier.fillMaxWidth(),
+                        enabled = !loading,
+                    )
+                    if (loading) CircularProgressIndicator()
+                }
+            },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        showLoginDialog = false
+                        viewModel.connectAccount(email, password)
+                    },
+                    enabled = !loading && email.isNotBlank() && password.isNotBlank(),
+                ) { Text("Verbinden") }
+            },
+            dismissButton = {
+                TextButton(onClick = { showLoginDialog = false }, enabled = !loading) { Text("Abbrechen") }
             },
         )
     }

@@ -20,6 +20,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import com.paketcast.analytics.data.api.PocketCastsApiClient
 import com.paketcast.analytics.data.model.OpmlSubscription
 import com.paketcast.analytics.data.repository.AnalyticsState
 import com.paketcast.analytics.stats.AnalyticsSnapshot
@@ -40,7 +41,46 @@ fun StateScaffold(
         is AnalyticsState.Error -> ErrorState(state.message)
         is AnalyticsState.Empty -> emptyContent()
         is AnalyticsState.OpmlOnly -> OpmlOnlyState(state.subscriptions)
+        is AnalyticsState.ApiLoaded -> ApiAccountState(state.account)
         is AnalyticsState.Loaded -> content(state.snapshot)
+    }
+}
+
+@Composable
+fun ApiAccountState(account: PocketCastsApiClient.ApiAccount) {
+    LazyColumn(modifier = Modifier.fillMaxSize()) {
+        item {
+            SectionHeader(
+                "Pocket-Casts-Konto verbunden (inoffizielle API): " +
+                    "${account.subscriptions.size} Abos · ${account.history.size} Verlauf-Einträge · " +
+                    "${account.starredTitles.size} Sternchen. Verlauf siehe Tab „Verlauf“."
+            )
+        }
+        items(account.subscriptions, key = { it.feedUrl ?: it.title }) { sub ->
+            Card(modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 4.dp)) {
+                Column(modifier = Modifier.padding(16.dp)) {
+                    Text(sub.title, style = MaterialTheme.typography.titleSmall)
+                    if (sub.feedUrl != null) {
+                        Text(
+                            sub.feedUrl,
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.secondary,
+                        )
+                    }
+                }
+            }
+        }
+        if (account.starredTitles.isNotEmpty()) {
+            item { SectionHeader("Sternchen (${account.starredTitles.size})") }
+            items(account.starredTitles.take(50), key = { it }) { title ->
+                Text(
+                    "★ $title",
+                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp),
+                    style = MaterialTheme.typography.bodyMedium,
+                )
+            }
+        }
+        item { Spacer(Modifier.height(16.dp)) }
     }
 }
 

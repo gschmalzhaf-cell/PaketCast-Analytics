@@ -212,8 +212,16 @@ Die App benötigt keine Berechtigungen und keine Internetverbindung. Die
 ## Roadmap / Ideen
 
 - [x] Hörverlauf pro Tag/Woche (v1.1.0, via `episode_interactions`)
-- [ ] Login über die inoffizielle Pocket-Casts-API (`api.pocketcasts.com/user/*`) statt DB-Import
-- [ ] Export der Statistiken als CSV/JSON
-- [ ] Filter nach Zeitraum
-- [ ] Vergleich mehrerer Importe (Entwicklung über die Zeit)
+- [x] Export der Statistiken als CSV/JSON (v1.2.0)
+- [x] Login über die inoffizielle Pocket-Casts-API (`/user/login` + `/user/history`, `/user/starred`, `/user/subscriptions`) (v1.3.0)
+- [ ] **Logische Ergänzungen (neu aufgenommen):**
+  - [ ] Suche in Podcasts/Episoden (Textfilter in den Listen)
+  - [ ] Sortierung der Podcasts-Liste wählbar (Hörzeit, Name, neueste Folge, Fortschritt)
+  - [ ] Filter-Chips in den Listen (Alle / nur offen / nur abgeschlossen / in Arbeit)
+  - [ ] Zeitraum-Filter für Verlauf und Statistiken (z. B. „dieses Jahr“, „letzte 30 Tage“)
+  - [ ] Jahresrückblick („End of Year“-Style: Top-Podcasts des Jahres, meiste Hörzeit pro Monat)
+  - [ ] Vergleich mehrerer Importe (Entwicklung über die Zeit)
+  - [ ] API: mehr Endpunkte (Up-Next-Queue, Bookmarks, Hörbücher/User-Files) + Token sicher im Android Keystore statt nur im RAM
+  - [ ] Dark Theme / dynamisches Theme
+  - [ ] Home-Screen-Widget „zuletzt gehört / noch offen“
 - [ ] weitere Vorschläge gerne als Issue ergänzen

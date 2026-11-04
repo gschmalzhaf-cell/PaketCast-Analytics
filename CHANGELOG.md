@@ -8,6 +8,9 @@ automatisch als Beschreibung (Release Notes) im GitHub-Release des Tags.
 
 ## [Unreleased]
 
+### Hinzugefügt
+- Pocket-Casts-Konto verbinden (inoffizielle API): Import-Dialog → „Konto verbinden…“, Login mit E-Mail/Passwort gegen `api.pocketcasts.com/user/login` (Passwort wird nicht gespeichert), lädt Abos, Verlauf (`/user/history`) und Sternchen (`/user/starred`); Verlauf ist im Tab „Verlauf“ sichtbar. INTERNET-Berechtigung wird nur für api.pocketcasts.com benötigt
+
 ## [v1.2.1]
 
 ### Behoben
