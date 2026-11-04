@@ -8,6 +8,8 @@ automatisch als Beschreibung (Release Notes) im GitHub-Release des Tags.
 
 ## [Unreleased]
 
+## [v1.3.1]
+
 ### Behoben
 - Nach „Konto verbinden“ (API) zeigte jeder Tab unten weiterhin nur die Favoriten/Abos: `StateScaffold` renderte den ApiLoaded-State auf allen Screens. Jetzt zeigt „Start“ die Konto-Ansicht, „Verlauf“ die API-History und alle Statistik-Tabs (Podcasts, Top 10, Netzwerke, Episoden, Offen) einen klaren Hinweis, dass dafür die pocketcasts.db importiert werden muss
 - Compile-Fehler durch neuen `apiContent`-Parameter: `content` wird in allen Screens jetzt benannt übergeben
