@@ -47,5 +47,5 @@ fun RemainingScreen(state: AnalyticsState) {
             items(remaining.episodes, key = { it.episode.uuid }) { EpisodeRow(it) }
             item { Spacer(Modifier.height(16.dp)) }
         }
-    }
+    })
 }

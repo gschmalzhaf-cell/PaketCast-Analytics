@@ -32,7 +32,7 @@ fun NetworksScreen(state: AnalyticsState) {
             }
             item { Spacer(Modifier.height(16.dp)) }
         }
-    }
+    })
 }
 
 @Composable
@@ -52,5 +52,5 @@ private fun NetworkRow(network: NetworkStats, maxListenedSec: Long) {
                 modifier = Modifier.fillMaxWidth(),
             )
         }
-    }
+    })
 }

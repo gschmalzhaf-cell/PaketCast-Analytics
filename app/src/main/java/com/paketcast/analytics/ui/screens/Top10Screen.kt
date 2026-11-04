@@ -27,5 +27,5 @@ fun Top10Screen(state: AnalyticsState) {
             }
             item { Spacer(Modifier.height(16.dp)) }
         }
-    }
+    })
 }

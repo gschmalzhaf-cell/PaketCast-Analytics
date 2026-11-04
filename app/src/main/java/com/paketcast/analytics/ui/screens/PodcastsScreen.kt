@@ -25,5 +25,5 @@ fun PodcastsScreen(state: AnalyticsState) {
             }
             item { Spacer(Modifier.height(16.dp)) }
         }
-    }
+    })
 }

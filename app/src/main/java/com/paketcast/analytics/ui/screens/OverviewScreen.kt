@@ -34,7 +34,7 @@ fun OverviewScreen(
         state = state,
         emptyContent = { EmptyState(onImportDatabase, onImportOpml) },
         apiContent = { ApiAccountState(it, onLogout = onLogout) },
-    ) { snapshot ->
+        content = { snapshot ->
         val overview = snapshot.overview
         LazyColumn(modifier = Modifier.fillMaxSize()) {
             item {
@@ -106,5 +106,5 @@ fun OverviewScreen(
             }
             item { Spacer(Modifier.height(16.dp)) }
         }
-    }
+    })
 }

@@ -23,5 +23,5 @@ fun EpisodesScreen(state: AnalyticsState) {
             items(snapshot.extremes.shortest, key = { it.episode.uuid }) { EpisodeRow(it) }
             item { Spacer(Modifier.height(16.dp)) }
         }
-    }
+    })
 }
