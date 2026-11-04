@@ -83,7 +83,7 @@ object PocketCastsApiClient {
         is Number -> raw.toLong()
         is String -> raw.toLongOrNull() ?: 0L
         else -> 0L
-    }.let { if (it > 10_000_000_000_000L) it / 1000L else it }
+    }.let { if (it > 10_000_000_000L) it / 1000L else it }
 
     /** Mappt die /user/history-Antwort auf PlaybackEvents (defensiv gegen Feldnamen-Varianten). */
     fun historyEventsFromJson(json: String): List<PlaybackEvent> {

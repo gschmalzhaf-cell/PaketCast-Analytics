@@ -32,7 +32,7 @@ PLAY_ACTIONS = {"play", "played", "listen", "listened", "playback", "resume", "s
 
 
 def normalize_epoch(raw):
-    return raw // 1000 if raw > 10_000_000_000_000 else raw
+    return raw // 1000 if raw > 10_000_000_000 else raw
 
 
 def listened_seconds(duration, played_up_to):

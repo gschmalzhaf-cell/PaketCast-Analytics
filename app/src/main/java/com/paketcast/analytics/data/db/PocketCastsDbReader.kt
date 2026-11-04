@@ -186,7 +186,7 @@ object PocketCastsDbReader {
     }
 
     private fun normalizeEpoch(raw: Long): Long = when {
-        raw > 10_000_000_000_000L -> raw / 1000L
+        raw > 10_000_000_000L -> raw / 1000L
         else -> raw
     }
 
