@@ -123,7 +123,7 @@ private fun HistoryContent(history: HistoryStats) {
                 unit = "Tage",
             )
         }
-    })
+    }
 }
 
 @Composable

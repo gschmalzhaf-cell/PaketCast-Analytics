@@ -52,5 +52,5 @@ private fun NetworkRow(network: NetworkStats, maxListenedSec: Long) {
                 modifier = Modifier.fillMaxWidth(),
             )
         }
-    })
+    }
 }
