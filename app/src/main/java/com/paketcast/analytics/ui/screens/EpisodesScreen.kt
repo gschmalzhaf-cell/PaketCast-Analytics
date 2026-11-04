@@ -15,7 +15,7 @@ import com.paketcast.analytics.ui.components.StateScaffold
 
 @Composable
 fun EpisodesScreen(state: AnalyticsState) {
-    StateScaffold(state) { snapshot ->
+    StateScaffold(state, content = { snapshot ->
         LazyColumn(modifier = Modifier.fillMaxSize()) {
             item { SectionHeader("Längste Folgen") }
             items(snapshot.extremes.longest, key = { it.episode.uuid }) { EpisodeRow(it) }

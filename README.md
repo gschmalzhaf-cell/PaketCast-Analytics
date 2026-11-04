@@ -24,6 +24,26 @@ auf dem Gerät – es gibt keine Netzwerkzugriffe.
   Tabelle, zeigt der Screen einen entsprechenden Hinweis) mit Gesamtsumme
   und Ø pro aktivem Tag.
 
+## Wo finde ich die Datenbank auf dem Handy?
+
+Die Datei liegt an folgendem Pfad (nur mit Root oder per adb erreichbar, da
+`/data/data/...` geschützt ist):
+
+```
+/data/data/au.com.shiftyjelly.pocketcasts/databases/pocketcasts.db
+```
+
+Paketname: `au.com.shiftyjelly.pocketcasts`. Liegt die App im WAL-Modus, gehören
+dazu noch `pocketcasts.db-wal` und `pocketcasts.db-shm` (damit fehlen keine
+neuesten Einträge) – am einfachsten Pocket Casts vor dem Kopieren sauber beenden.
+
+**Ohne Root (einfachster Weg für jeden Nutzer):** Neuere Pocket-Casts-Versionen
+können die Datenbank selbst exportieren (Support-Artikel „Exporting the App
+Database“): In Pocket Casts unter **Einstellungen → Erweitert/Support → Datenbank
+exportieren** die Datei per Teilen-Dialog (z. B. an dich selbst mailen/Cloud)
+übertragen und in dieser App über das Import-Symbol auswählen. Der gleiche
+Hinweis steht direkt im Import-Dialog der App.
+
 ## Datenquelle: wie komme ich an die Pocket-Casts-Daten?
 
 Pocket Casts ist **Open Source** (seit Okt. 2022, MPL 2.0):

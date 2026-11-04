@@ -23,7 +23,15 @@ class AnalyticsViewModel(application: Application) : AndroidViewModel(applicatio
         viewModelScope.launch { repository.importOpml(uri) }
     }
 
+    init {
+        viewModelScope.launch { repository.restoreSession() }
+    }
+
     fun connectAccount(email: String, password: String) {
         viewModelScope.launch { repository.connectAccount(email, password) }
+    }
+
+    fun logout() {
+        repository.logout()
     }
 }

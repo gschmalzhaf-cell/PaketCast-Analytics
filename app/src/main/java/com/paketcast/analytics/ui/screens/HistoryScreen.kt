@@ -49,9 +49,9 @@ fun HistoryScreen(state: AnalyticsState) {
         HistoryContent(StatisticsEngine.buildHistory(state.account.history))
         return
     }
-    StateScaffold(state) { snapshot ->
+    StateScaffold(state, content = { snapshot ->
         HistoryContent(snapshot.history)
-    }
+    })
 }
 
 @Composable

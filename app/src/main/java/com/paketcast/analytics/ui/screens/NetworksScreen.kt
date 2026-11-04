@@ -23,7 +23,7 @@ import com.paketcast.analytics.ui.format.Format
 
 @Composable
 fun NetworksScreen(state: AnalyticsState) {
-    StateScaffold(state) { snapshot ->
+    StateScaffold(state, content = { snapshot ->
         val maxListened = snapshot.networks.maxOfOrNull { it.listenedSec }?.coerceAtLeast(1L) ?: 1L
         LazyColumn(modifier = Modifier.fillMaxSize()) {
             item { SectionHeader("${snapshot.networks.size} Podcast-Netzwerke – sortiert nach Hörzeit") }

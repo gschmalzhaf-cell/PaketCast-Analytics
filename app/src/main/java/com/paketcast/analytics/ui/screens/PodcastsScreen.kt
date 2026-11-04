@@ -15,7 +15,7 @@ import com.paketcast.analytics.ui.components.StateScaffold
 
 @Composable
 fun PodcastsScreen(state: AnalyticsState) {
-    StateScaffold(state) { snapshot ->
+    StateScaffold(state, content = { snapshot ->
         LazyColumn(modifier = Modifier.fillMaxSize()) {
             item {
                 SectionHeader("${snapshot.podcasts.size} Podcasts – sortiert nach Hörzeit")

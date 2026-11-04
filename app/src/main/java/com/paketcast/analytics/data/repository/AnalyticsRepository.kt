@@ -38,6 +38,8 @@ class AnalyticsRepository(private val context: Context) {
     private val _state = MutableStateFlow<AnalyticsState>(AnalyticsState.Empty)
     val state: StateFlow<AnalyticsState> = _state.asStateFlow()
 
+    private val tokenStore = TokenStore(context)
+
     private var opmlSubscriptions: List<OpmlSubscription> = emptyList()
 
     private val dbFile: File
@@ -77,6 +79,7 @@ class AnalyticsRepository(private val context: Context) {
         val result = withContext(Dispatchers.IO) {
             runCatching {
                 val token = PocketCastsApiClient.login(email, password)
+                tokenStore.saveToken(token)
                 PocketCastsApiClient.fetchAccount(token)
             }
         }
@@ -84,6 +87,27 @@ class AnalyticsRepository(private val context: Context) {
             onSuccess = { AnalyticsState.ApiLoaded(it) },
             onFailure = { AnalyticsState.Error(it.message ?: "Verbindung zur Pocket-Casts-API fehlgeschlagen") },
         )
+    }
+
+    /** Stellt eine gespeicherte API-Session nach App-Start wieder her. */
+    suspend fun restoreSession() {
+        val token = tokenStore.loadToken() ?: return
+        _state.value = AnalyticsState.Loading
+        val result = withContext(Dispatchers.IO) {
+            runCatching { PocketCastsApiClient.fetchAccount(token) }
+        }
+        _state.value = result.fold(
+            onSuccess = { AnalyticsState.ApiLoaded(it) },
+            onFailure = {
+                tokenStore.clear()
+                AnalyticsState.Empty
+            },
+        )
+    }
+
+    fun logout() {
+        tokenStore.clear()
+        _state.value = AnalyticsState.Empty
     }
 
     suspend fun importOpml(uri: Uri) {

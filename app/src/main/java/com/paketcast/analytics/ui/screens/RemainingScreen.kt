@@ -22,7 +22,7 @@ import com.paketcast.analytics.ui.format.Format
 
 @Composable
 fun RemainingScreen(state: AnalyticsState) {
-    StateScaffold(state) { snapshot ->
+    StateScaffold(state, content = { snapshot ->
         val remaining = snapshot.remaining
         LazyColumn(modifier = Modifier.fillMaxSize()) {
             item {

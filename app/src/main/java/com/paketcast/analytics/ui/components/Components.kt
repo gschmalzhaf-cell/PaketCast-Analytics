@@ -11,6 +11,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
@@ -67,7 +68,7 @@ fun ApiNeedsDatabaseHint() {
 }
 
 @Composable
-fun ApiAccountState(account: PocketCastsApiClient.ApiAccount) {
+fun ApiAccountState(account: PocketCastsApiClient.ApiAccount, onLogout: () -> Unit = {}) {
     LazyColumn(modifier = Modifier.fillMaxSize()) {
         item {
             SectionHeader(
@@ -75,6 +76,14 @@ fun ApiAccountState(account: PocketCastsApiClient.ApiAccount) {
                     "${account.subscriptions.size} Abos · ${account.history.size} Verlauf-Einträge · " +
                     "${account.starredTitles.size} Sternchen. Verlauf siehe Tab „Verlauf“."
             )
+        }
+        item {
+            OutlinedButton(
+                onClick = onLogout,
+                modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),
+            ) {
+                Text("Abmelden")
+            }
         }
         items(account.subscriptions, key = { it.feedUrl ?: it.title }) { sub ->
             Card(modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 4.dp)) {

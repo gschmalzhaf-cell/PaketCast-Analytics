@@ -15,7 +15,7 @@ import com.paketcast.analytics.ui.components.StateScaffold
 
 @Composable
 fun Top10Screen(state: AnalyticsState) {
-    StateScaffold(state) { snapshot ->
+    StateScaffold(state, content = { snapshot ->
         LazyColumn(modifier = Modifier.fillMaxSize()) {
             item { SectionHeader("Top 10 nach Hörzeit") }
             itemsIndexed(snapshot.top10.byListened) { index, stats ->

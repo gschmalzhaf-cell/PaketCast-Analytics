@@ -173,6 +173,7 @@ fun PaketCastApp(viewModel: AnalyticsViewModel = viewModel()) {
                     state = state,
                     onImportDatabase = { dbPicker.launch(arrayOf(*DB_MIME_TYPES.split(",").toTypedArray())) },
                     onImportOpml = { opmlPicker.launch(arrayOf(*OPML_MIME_TYPES.split(",").toTypedArray())) },
+                    onLogout = { viewModel.logout() },
                 )
             }
             composable("podcasts") { PodcastsScreen(state) }
@@ -191,6 +192,15 @@ fun PaketCastApp(viewModel: AnalyticsViewModel = viewModel()) {
             text = {
                 Column {
                     Text("Alle Daten bleiben auf diesem Gerät – es wird nichts hochgeladen.")
+                    Spacer(Modifier.height(4.dp))
+                    Text(
+                        "Die Datenbank liegt auf dem Handy unter:\n" +
+                            "/data/data/au.com.shiftyjelly.pocketcasts/databases/pocketcasts.db\n" +
+                            "(nur mit Root/adb erreichbar). Ohne Root: in Pocket Casts unter „Datenbank " +
+                            "exportieren“ (Einstellungen → Erweitert) die Datei teilen und hier wählen. " +
+                            "Details siehe README, Abschnitt „Datenquelle“.",
+                        style = MaterialTheme.typography.bodySmall,
+                    )
                     Spacer(Modifier.height(12.dp))
                     OutlinedButton(
                         onClick = {

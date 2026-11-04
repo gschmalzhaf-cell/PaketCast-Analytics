@@ -28,11 +28,12 @@ fun OverviewScreen(
     state: AnalyticsState,
     onImportDatabase: () -> Unit,
     onImportOpml: () -> Unit,
+    onLogout: () -> Unit = {},
 ) {
     StateScaffold(
         state = state,
         emptyContent = { EmptyState(onImportDatabase, onImportOpml) },
-        apiContent = { ApiAccountState(it) },
+        apiContent = { ApiAccountState(it, onLogout = onLogout) },
     ) { snapshot ->
         val overview = snapshot.overview
         LazyColumn(modifier = Modifier.fillMaxSize()) {
